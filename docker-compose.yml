@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  studentsdb:
+    container_name: studentsdb
+    image: mysql
+    ports:
+      - 3307:3306
+    environment:
+      MYSQL_DATABASE: studentsdb
+      MYSQL_ROOT_PASSWORD: Jerry999@
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      timeout: 10s
+      retries: 10
+      interval: 10s
+      start_period: 10s
+    networks:
+      - springweb
+
+  accounts:
+    image: "tatajerry/studentapp-studentapp:latest"
+    container_name: studentapp
+    ports:
+      - "9011:9010"
+    environment:
+      SPRING_APPLICATION_NAME: "student"
+      SPRING_DATASOURCE_URL: "jdbc:mysql://studentsdb:3306/studentsdb"
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: Jerry999@
+    depends_on:
+      studentsdb:
+        condition: service_healthy
+    networks:
+      - springweb
+    deploy:
+      resources:
+        limits:
+          memory: 700m
+
+networks:
+  springweb:
+    driver: bridge
